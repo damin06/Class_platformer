@@ -38,6 +38,7 @@
   <ItemGroup>
      <Compile Include="Assets\scriptes\CharacterController2D.cs" />
      <Compile Include="Assets\scriptes\Player_Controller.cs" />
+     <Compile Include="Assets\scriptes\GloabalType.cs" />
     <Reference Include="UnityEngine">
         <HintPath>C:/Program Files/Unity/Hub/Editor/2021.1.7f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>
     </Reference>

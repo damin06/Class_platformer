@@ -19,6 +19,7 @@ public class Player_Controller : MonoBehaviour
     private Vector2 _moveDirection;
     private CharacterController2D  _charachtercontroller;
 
+
     private void Awake()
     {
         _charachtercontroller = GetComponent<CharacterController2D >();
@@ -35,6 +36,7 @@ public class Player_Controller : MonoBehaviour
                 _startJump = false;
                 _moveDirection.y = jumpSpeed;
                 isJumping = true;
+                _charachtercontroller.DisableFroundCheck(0.1f);
             }
         }
         else//공중에.....
@@ -63,9 +65,11 @@ public class Player_Controller : MonoBehaviour
         if(context.started)
         {
             _startJump = true;
+            _rleaseJump = false;
         }
         else if(context.canceled)
         {
+            _startJump = false;
             _rleaseJump = true;
         }
     }

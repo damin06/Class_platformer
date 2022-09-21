@@ -20,6 +20,8 @@ public class CharacterController2D  : MonoBehaviour
     private Vector2[] _raycastPosition = new Vector2[3];
     private RaycastHit2D[] _raycastHits = new RaycastHit2D[3];
 
+    private bool _disableGroundCheck;
+
     private void Awake()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
@@ -82,5 +84,18 @@ public class CharacterController2D  : MonoBehaviour
         {
             Debug.DrawRay(_raycastPosition[i], direction * raycastDistance, color);
         }
+    }
+
+    public void DisableFroundCheck(float delayTime)
+    {
+        below = false;
+        _disableGroundCheck = true;
+        StartCoroutine("EnableGroundCheck",delayTime);
+    }
+
+    IEnumerator EnableGroundCheck()
+    {
+        yield return new WaitForSeconds(0.1f);
+        _disableGroundCheck = false;
     }
 }
