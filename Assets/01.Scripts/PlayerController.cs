@@ -3,20 +3,27 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+
 public class PlayerController : MonoBehaviour
 {
+        [Header("Player Properties")]
     public float walkSpeed = 10;
     public float gravity = 20f;
     public float jumpSpeed = 15f;
     public float doubleJumpSpeed = 10f;
+    public float xWallJumpSpeed = 15f;
+    public float yWallJumpSpeed = 15f;
 
+    [Header("Player Abilities")]
     public bool canDoubleJump;
     public bool canTripleJump;
+    public bool canWallJump;
 
-    //player state
+    [Header("Player States")]
     public bool isJumping;
     public bool isDoubleJumping;
     public bool isTripleJumping;
+    public bool isWallJumping;
 
     private bool _startJump;
     private bool _realeaseJump;
@@ -32,8 +39,11 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        PlayerMove();
-        SpriteFlip();
+        if (!isWallJumping)
+        {
+            PlayerMove();
+            SpriteFlip();
+        }
         PlayerJump();
     }
     
@@ -84,6 +94,7 @@ public class PlayerController : MonoBehaviour
             isJumping = false;
             isDoubleJumping = false;
             isTripleJumping = false;
+            isWallJumping = false;
 
             if (_startJump)
             {
@@ -95,7 +106,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            if (_realeaseJump) //∞¯¡ﬂø°.... 
+            if (_realeaseJump) //Í≥µÏ§ëÏóê.... 
             {
                 _realeaseJump = false;
                 if (_moveDirection.y > 0)
@@ -105,7 +116,7 @@ public class PlayerController : MonoBehaviour
             }
 
 
-            if (_startJump) //¥ı∫Ì¡°«¡
+            if (_startJump) //ÎçîÎ∏îÏ†êÌîÑ
             {
                 if (canTripleJump && (!_charactorController.left && !_charactorController.right))
                 {
@@ -125,6 +136,26 @@ public class PlayerController : MonoBehaviour
                         isDoubleJumping = true;
                     }
                 }
+
+                if (canWallJump && (_charactorController.left || _charactorController.right))
+                {
+                    if (_charactorController.right && _moveDirection.x <= 0)
+                    {
+                        _moveDirection.x = -xWallJumpSpeed;
+                        _moveDirection.y = yWallJumpSpeed;
+                        transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+                    }
+                    else if (_charactorController.left && _moveDirection.x >= 0)
+                    {
+                        _moveDirection.x = xWallJumpSpeed;
+                        _moveDirection.y = yWallJumpSpeed;
+                        transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+                    }
+                    isWallJumping = true;
+
+                    StartCoroutine(WallJumpWaiter());
+                }
+
                 _startJump = false;
             }
             
@@ -141,5 +172,12 @@ public class PlayerController : MonoBehaviour
     private void PlayerMove()
     {
         _moveDirection.x = _input.x * walkSpeed;
+    }
+
+    IEnumerator WallJumpWaiter()
+    {
+        isWallJumping = true;
+        yield return new WaitForSeconds(0.4f);
+        isWallJumping = false;
     }
 }
