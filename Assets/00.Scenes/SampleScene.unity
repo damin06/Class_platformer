@@ -3268,11 +3268,15 @@ MonoBehaviour:
   gravity: 20
   jumpSpeed: 15
   doubleJumpSpeed: 10
+  xWallJumpSpeed: 15
+  yWallJumpSpeed: 15
   canDoubleJump: 1
   canTripleJump: 1
+  canWallJump: 1
   isJumping: 0
   isDoubleJumping: 0
   isTripleJumping: 0
+  isWallJumping: 0
 --- !u!114 &1767920207
 MonoBehaviour:
   m_ObjectHideFlags: 0
