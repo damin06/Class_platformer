@@ -3,27 +3,43 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-
 public class PlayerController : MonoBehaviour
 {
-        [Header("Player Properties")]
+    [Header("Player Properties")]
     public float walkSpeed = 10;
+    public float creepSpeed = 5f;
     public float gravity = 20f;
     public float jumpSpeed = 15f;
     public float doubleJumpSpeed = 10f;
     public float xWallJumpSpeed = 15f;
     public float yWallJumpSpeed = 15f;
+    public float wallRunSpeed = 8f;
+    public float wallSlideAmount = 0.1f;
+    public float dashSpeed = 40f;
+    public float dashTime = 0.2f;
+    public float dashCooldownTime = 1f;
+
 
     [Header("Player Abilities")]
     public bool canDoubleJump;
     public bool canTripleJump;
     public bool canWallJump;
+    public bool canWallRun;
+    public bool canWallSlide;
+    public bool canAirDash;
+    public bool canGroundDash;
+
 
     [Header("Player States")]
     public bool isJumping;
     public bool isDoubleJumping;
     public bool isTripleJumping;
     public bool isWallJumping;
+    public bool isWallRunning;
+    public bool isWallSliding;
+    public bool isDucking;
+    public bool isCreeping;
+    public bool isDashing;
 
     private bool _startJump;
     private bool _realeaseJump;
@@ -31,10 +47,19 @@ public class PlayerController : MonoBehaviour
     private Vector2 _input;
     private Vector2 _moveDirection;
     private CharactorController2D _charactorController;
+    private CapsuleCollider2D _capsuleCollider;
+    private SpriteRenderer _spriteRenderer;
+
+    private Vector2 _originColliderSize;
+    private bool _ableToWallRun;
 
     private void Awake()
     {
         _charactorController = GetComponent<CharactorController2D>();
+        _capsuleCollider = GetComponent<CapsuleCollider2D>();
+        _spriteRenderer = GetComponent<SpriteRenderer>();
+
+        _originColliderSize = _capsuleCollider.size;
     }
 
     private void Update()
@@ -45,15 +70,7 @@ public class PlayerController : MonoBehaviour
             SpriteFlip();
         }
         PlayerJump();
-    }
-    
-    private void GravityCalculation()
-    {
-        if (_moveDirection.y > 0f && _charactorController.above)
-        {
-            _moveDirection.y = 0f;
-        }
-        _moveDirection.y -= gravity * Time.deltaTime;
+        WallRun();
     }
 
     public void OnMovement(InputAction.CallbackContext context)
@@ -82,8 +99,24 @@ public class PlayerController : MonoBehaviour
             transform.localScale = Vector3.one;
         else if (_input.x < 0)
             transform.localScale = new Vector3(-1, 1, 1);
-        else
-            transform.localScale = transform.localScale;
+    }
+
+    public void OnDash(InputAction.CallbackContext context)
+    {
+        if(context.started)
+        {
+            if((canAirDash && !_charactorController.below) || (canGroundDash && _charactorController.below))
+            {
+                StartCoroutine("Dash");
+            }
+        }
+    }
+
+    IEnumerator Dash()
+    {
+        isDashing = true;
+        yield return new WaitForSeconds(dashTime);
+        isDashing = false;
     }
 
     private void PlayerJump()
@@ -95,18 +128,54 @@ public class PlayerController : MonoBehaviour
             isDoubleJumping = false;
             isTripleJumping = false;
             isWallJumping = false;
+            isWallSliding = false;
 
             if (_startJump)
             {
                 _startJump = false;
                 _moveDirection.y = jumpSpeed;
                 isJumping = true;
+                _ableToWallRun = true;
                 _charactorController.DisableGroundCheck(0.1f);
             }
+
+            //ducking, creeping
+            if (_input.y < 0f)
+            {
+                if (!isDucking && !isCreeping)
+                {
+                    isDucking = true;
+                    _capsuleCollider.size = new Vector2(_capsuleCollider.size.x, _capsuleCollider.size.y / 2);
+                    transform.position = new Vector2(transform.position.x, transform.position.y - (_originColliderSize.y/4));
+                    _spriteRenderer.sprite = Resources.Load<Sprite>("directionSpriteUp_crouching");
+                }
+            }
+            else
+            {
+                if (isCreeping || isDucking)
+                {
+                    RaycastHit2D hitCeiling = Physics2D.CapsuleCast(_capsuleCollider.bounds.center, transform.localScale, CapsuleDirection2D.Vertical, 0f, Vector2.up, _originColliderSize.y / 2f, _charactorController.layerMask);
+                    if (!hitCeiling.collider)
+                    {
+                        isDucking = false;
+                        isCreeping = false;
+                        _capsuleCollider.size = _originColliderSize;
+                        _spriteRenderer.sprite = Resources.Load<Sprite>("directionSpriteUp");
+                    }
+                }
+            }
+
+            if (isDucking && _moveDirection.x != 0)
+                isCreeping = true;
+            else
+                isCreeping = false;
         }
-        else
+        else //���߿�.... 
         {
-            if (_realeaseJump) //공중에.... 
+            if ((isCreeping || isDucking) && _moveDirection.y > 0)
+                StartCoroutine(ClearDuckingState());
+
+            if (_realeaseJump) 
             {
                 _realeaseJump = false;
                 if (_moveDirection.y > 0)
@@ -116,7 +185,7 @@ public class PlayerController : MonoBehaviour
             }
 
 
-            if (_startJump) //더블점프
+            if (_startJump) //��������
             {
                 if (canTripleJump && (!_charactorController.left && !_charactorController.right))
                 {
@@ -169,15 +238,80 @@ public class PlayerController : MonoBehaviour
             _realeaseJump = true;*/
     }
 
+    private void WallRun()
+    {
+        if (_charactorController.below)
+        {
+            isWallRunning = false;
+            return;
+        }
+
+        if (canWallRun && (_charactorController.left || _charactorController.right))
+        {
+            if (_input.y > 0f && _ableToWallRun)
+            {
+                _moveDirection.y = wallRunSpeed;
+            }
+
+            StartCoroutine(WallRunWaiter());
+        }
+    }
+
+    private void GravityCalculation()
+    {
+        if (_moveDirection.y > 0f && _charactorController.above)
+        {
+            _moveDirection.y = 0f;
+        }
+
+        if (canWallSlide && (_charactorController.left || _charactorController.right))
+        {
+            if (_charactorController.hitWallThisFrame)
+                _moveDirection.y = 0f;
+
+            if (_moveDirection.y <= 0)
+                _moveDirection.y -= gravity * wallSlideAmount * Time.deltaTime;
+            else
+                _moveDirection.y -= gravity * Time.deltaTime;
+
+            isWallSliding = true;
+        }
+        else
+            _moveDirection.y -= gravity * Time.deltaTime;
+    }
+
     private void PlayerMove()
     {
         _moveDirection.x = _input.x * walkSpeed;
     }
 
-    IEnumerator WallJumpWaiter()
+    private IEnumerator WallJumpWaiter()
     {
         isWallJumping = true;
         yield return new WaitForSeconds(0.4f);
         isWallJumping = false;
+    }
+
+    private IEnumerator WallRunWaiter()
+    {
+        isWallRunning = true;
+        yield return new WaitForSeconds(0.5f);
+        isWallRunning = false;
+        if (!isWallRunning)
+            _ableToWallRun = false;
+    }
+
+    private IEnumerator ClearDuckingState()
+    {
+        yield return new WaitForSeconds(.05f);
+
+        RaycastHit2D hitCeiling = Physics2D.CapsuleCast(_capsuleCollider.bounds.center, transform.localScale, CapsuleDirection2D.Vertical, 0f, Vector2.up, _originColliderSize.y / 2f, _charactorController.layerMask);
+        if (!hitCeiling.collider)
+        {
+            isDucking = false;
+            isCreeping = false;
+            _capsuleCollider.size = _originColliderSize;
+            _spriteRenderer.sprite = Resources.Load<Sprite>("directionSpriteUp");
+        }
     }
 }

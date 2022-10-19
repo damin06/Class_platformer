@@ -17,6 +17,8 @@ public class CharactorController2D : MonoBehaviour
 
     public GroundType groundType;
 
+    public bool hitWallThisFrame;
+
     // 나중에 private로 변경에정
     private Vector2 _slopNormal;
     private float _slopAngle;
@@ -32,6 +34,7 @@ public class CharactorController2D : MonoBehaviour
     private RaycastHit2D[] _raycastHits = new RaycastHit2D[3];
 
     private bool _dissbleGroundCheck;
+    private bool _noSlideCollisionLastFrame;
 
     private void Awake()
     {
@@ -41,6 +44,8 @@ public class CharactorController2D : MonoBehaviour
 
     private void Update()
     {
+        _noSlideCollisionLastFrame = (!right && !left);
+
         _lastPosition = _rigidbody.position;
 
         if (_slopAngle != 0 && below)
@@ -61,6 +66,11 @@ public class CharactorController2D : MonoBehaviour
             CheckGrounded();
 
         CheckOtherCollision();
+
+        if ((right && left) && _noSlideCollisionLastFrame)
+            hitWallThisFrame = true;
+        else
+            hitWallThisFrame = false;
     }
 
     public void Move(Vector2 movement)
