@@ -16,10 +16,11 @@ public class CharactorController2D : MonoBehaviour
     public bool left;
 
     public GroundType groundType;
+    public GroundType wallType;
 
     public bool hitWallThisFrame;
 
-    // ³ªÁß¿¡ private·Î º¯°æ¿¡Á¤
+    // ï¿½ï¿½ï¿½ß¿ï¿½ privateï¿½ï¿½ ï¿½ï¿½ï¿½æ¿¡ï¿½ï¿½
     private Vector2 _slopNormal;
     private float _slopAngle;
 
@@ -57,7 +58,7 @@ public class CharactorController2D : MonoBehaviour
         }
 
         _currentPosition = _lastPosition + _moveAmount;
-        
+
         _rigidbody.MovePosition(_currentPosition);
 
         _moveAmount = Vector2.zero;
@@ -85,7 +86,7 @@ public class CharactorController2D : MonoBehaviour
             left = true;
         else
             left = false;
-        
+
         RaycastHit2D rightHit = Physics2D.BoxCast(_capsuleCollider.bounds.center, _capsuleCollider.size * 0.7f, 0f, Vector2.right, raycastDistance, layerMask);
         if (rightHit.collider)
             right = true;
@@ -148,7 +149,7 @@ public class CharactorController2D : MonoBehaviour
         }
         */
 
-        // °æ»ç¸éÀÌ 45µµ ÀÌ»óÀÌ¸é below = false
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 45ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Ì¸ï¿½ below = false
         /*if (numberofGroundHits > 0)
         {
             if (_slopAngle > slopAngleLimit || _slopAngle < -slopAngleLimit)
