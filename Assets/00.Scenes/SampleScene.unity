@@ -2395,7 +2395,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 2
-    m_SensorSize: {x: 1.7777778, y: 1}
+    m_SensorSize: {x: 2.269084, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -2768,6 +2768,36 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1999849571}
   m_RootOrder: 17
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1609431258
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1609431259}
+  m_Layer: 0
+  m_Name: ' '
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1609431259
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1609431258}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.045303524, y: 1.6829993, z: -32.46755}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 12
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1637082729
 GameObject:
@@ -3397,11 +3427,16 @@ MonoBehaviour:
   yWallJumpSpeed: 15
   wallRunSpeed: 8
   wallSlideAmount: 0.5
+  dashSpeed: 40
+  dashTime: 0.2
+  dashCooldownTime: 1
   canDoubleJump: 1
   canTripleJump: 1
   canWallJump: 1
   canWallRun: 1
   canWallSlide: 1
+  canAirDash: 0
+  canGroundDash: 0
   isJumping: 0
   isDoubleJumping: 0
   isTripleJumping: 0
@@ -3410,6 +3445,7 @@ MonoBehaviour:
   isWallSliding: 0
   isDucking: 0
   isCreeping: 0
+  isDashing: 0
 --- !u!114 &1767920207
 MonoBehaviour:
   m_ObjectHideFlags: 0
