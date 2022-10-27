@@ -16,7 +16,9 @@ public class CharactorController2D : MonoBehaviour
     public bool left;
 
     public GroundType groundType;
-    public GroundType wallType;
+    public GroundType cellingType;
+    public WallType rightWallType;
+    public WallType leftWallType;
 
     public bool hitWallThisFrame;
 
@@ -82,23 +84,41 @@ public class CharactorController2D : MonoBehaviour
     private void CheckOtherCollision()
     {
         RaycastHit2D leftHit = Physics2D.BoxCast(_capsuleCollider.bounds.center, _capsuleCollider.size * 0.7f, 0f, Vector2.left, raycastDistance, layerMask);
+
         if (leftHit.collider)
+        {
+            leftWallType = DetermineWallType(leftHit.collider);
             left = true;
+        }
         else
+        {
+            leftWallType = WallType.None;
             left = false;
+        }
 
         RaycastHit2D rightHit = Physics2D.BoxCast(_capsuleCollider.bounds.center, _capsuleCollider.size * 0.7f, 0f, Vector2.right, raycastDistance, layerMask);
         if (rightHit.collider)
+        {
+            rightWallType = DetermineWallType(rightHit.collider);
             right = true;
+        }
         else
+        {
+            rightWallType = WallType.None;
             right = false;
+        }
 
         RaycastHit2D aboveHit = Physics2D.CapsuleCast(_capsuleCollider.bounds.center, _capsuleCollider.size, CapsuleDirection2D.Vertical, 0f, Vector2.up, raycastDistance, layerMask);
         if (aboveHit.collider)
+        {
+            cellingType = DetermineGroundType(aboveHit.collider);
             above = true;
+        }
         else
+        {
+            cellingType = GroundType.None;
             above = false;
-
+        }
     }
 
     private void CheckGrounded()
@@ -119,9 +139,10 @@ public class CharactorController2D : MonoBehaviour
         else
         {
             below = false;
-            groundType = GroundType.none;
+            groundType = GroundType.None;
         }
 
+        #region �ʿ���� �ڵ�
         /*
         Vector2 raycastOrigin = _rigidbody.position - new Vector2(0, _capsuleCollider.size.y * 0.5f);
 
@@ -164,6 +185,7 @@ public class CharactorController2D : MonoBehaviour
         }*/
 
         //System.Array.Clear(_raycastHits, 0, _raycastHits.Length);
+        #endregion
     }
 
     private GroundType DetermineGroundType(Collider2D collider)
@@ -175,6 +197,17 @@ public class CharactorController2D : MonoBehaviour
         }
         else
             return GroundType.LevelGeom;
+    }
+
+    private WallType DetermineWallType(Collider2D collider)
+    {
+        if (collider.GetComponent<GroundEffector>())
+        {
+            WallEffector wallEffector = collider.GetComponent<WallEffector>();
+            return wallEffector.wallType;
+        }
+        else
+            return WallType.Normal;
     }
 
     private void DrawDebugRays(Vector2 direction, Color color)

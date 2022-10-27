@@ -2,7 +2,7 @@ namespace Globlatype
 {
     public enum GroundType
     {
-        none,
+        None,
         LevelGeom,
         OneWayPlatform,
         MoveingPlatform,
